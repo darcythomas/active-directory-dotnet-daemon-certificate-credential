@@ -1,3 +1,5 @@
+ //Install-Package Security.Cryptography
+ 
  public class ClientAssertionCertificate: IClientAssertionCertificate
     {
         public ClientAssertionCertificate(string clientId, X509Certificate2 certificate)
