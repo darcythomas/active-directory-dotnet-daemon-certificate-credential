@@ -1,0 +1,35 @@
+ public class ClientAssertionCertificate: IClientAssertionCertificate
+    {
+        public ClientAssertionCertificate(string clientId, X509Certificate2 certificate)
+        {
+            if (string.IsNullOrWhiteSpace(clientId))
+                throw new ArgumentNullException(nameof(clientId));
+            if (certificate == null)
+                throw new ArgumentNullException(nameof(certificate));
+            if (certificate.PublicKey.Key.KeySize < Microsoft.IdentityModel.Clients.ActiveDirectory.ClientAssertionCertificate.MinKeySizeInBits)
+                throw new ArgumentOutOfRangeException(nameof(certificate),  $"The certificate used must have a key size of at least { Microsoft.IdentityModel.Clients.ActiveDirectory.ClientAssertionCertificate.MinKeySizeInBits} bits");
+
+            ClientId = clientId;
+            Certificate = certificate;
+        }
+
+        /// <summary>Gets minimum X509 certificate key size in bits</summary>
+        public static int MinKeySizeInBits => 2048;
+
+        public string ClientId { get; }
+
+        /// <summary>Gets the certificate used as credential.</summary>
+        public X509Certificate2 Certificate { get; }
+
+        /// <summary>Returns thumbprint of the certificate</summary>
+        public string Thumbprint => Convert.ToBase64String(this.Certificate.GetCertHash());
+
+       
+        public byte[] Sign(string message)
+        {
+            var dataToSign = Encoding.UTF8.GetBytes(message);
+            RSACng key = new RSACng(Certificate.GetCngPrivateKey());
+            byte[] signature = key.SignData(dataToSign,HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+            return signature;
+        }
+    }
